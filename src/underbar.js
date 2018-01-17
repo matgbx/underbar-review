@@ -7,6 +7,7 @@
   // seem very useful, but remember it--if a function needs to provide an
   // iterator when the user does not pass one in, this will be handy.
   _.identity = function(val) {
+    return val;
   };
 
   /**
@@ -37,6 +38,7 @@
   // Like first, but for the last elements. If n is undefined, return just the
   // last element.
   _.last = function(array, n) {
+    return n === undefined ? array[array.length - 1] : array.slice(Math.max(0, array.length - n));
   };
 
   // Call iterator(value, key, collection) for each element of collection.
@@ -45,6 +47,15 @@
   // Note: _.each does not have a return value, but rather simply runs the
   // iterator function over each item in the input collection.
   _.each = function(collection, iterator) {
+    if (Array.isArray(collection)) {
+      for (var i = 0; i < collection.length; i++) {
+        iterator(collection[i], i, collection);  
+      }
+    } else if (typeof collection === 'object') {
+      for (var key in collection) {
+        iterator(collection[key], key, collection);
+      }  
+    }  
   };
 
   // Returns the index at which value can be found in the array, or -1 if value
@@ -66,16 +77,48 @@
 
   // Return all elements of an array that pass a truth test.
   _.filter = function(collection, test) {
+    var arr = [];
+    _.each(collection, function(item, i) {
+      if (test(item)) {
+        arr.push(item);
+      }    
+    });
+    return arr;
   };
 
   // Return all elements of an array that don't pass a truth test.
   _.reject = function(collection, test) {
     // TIP: see if you can re-use _.filter() here, without simply
     // copying code in and modifying it
+    
+    return _.filter(collection, function(item, i) {
+      return !test(item);
+    });
   };
 
   // Produce a duplicate-free version of the array.
   _.uniq = function(array, isSorted, iterator) {
+    var res = [];
+    var isTrue = 0;
+    var isFalse = 0;
+    if (arguments.length > 1) {
+      _.each(array, function(item) {
+        if (iterator(item) && isTrue === 0) {
+          isTrue = item;
+          res.push(item);
+        } else if (!iterator(item) && isFalse === 0) {
+          isFalse = item;
+          res.push(item);
+        }
+      });
+    } else {
+      _.each(array, function(item) {
+        if (!res.includes(item)) {
+          res.push(item);
+        }
+      });
+    }
+    return res;
   };
 
 
@@ -84,6 +127,11 @@
     // map() is a useful primitive iteration function that works a lot
     // like each(), but in addition to running the operation on all
     // the members, it also maintains an array of results.
+    var arr = [];
+    _.each(collection, function(item, index) {
+      arr.push(iterator(item));
+    });
+    return arr;
   };
 
   /*
@@ -125,6 +173,32 @@
   //   }); // should be 5, regardless of the iterator function passed in
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
+    // var acc = accumulator;
+    // var i = 0;
+    // if (arguments.length === 2) {
+    //   acc = collection[0];
+    //   i = 1;
+    // }
+    // if (Array.isArray(collection)) {
+    //   for (; i < collection.length; i++) {
+    //     acc = iterator(acc, collection[i]);
+    //   }
+    // } else if (typeof collection === 'object') {
+    //   for (var key in collection) {
+        
+    //   }
+    // }
+    // return acc;
+    var start = true;
+    _.each(collection, function(item, key, collection) {
+      if (accumulator === undefined && start === true) {
+        start = false;
+        accumulator = item;
+      } else {
+        accumulator = iterator(accumulator, item, key, collection);   
+      }
+    });
+    return accumulator;
   };
 
   // Determine if the array or object contains a given value (using `===`).
@@ -143,6 +217,8 @@
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
+
+
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
